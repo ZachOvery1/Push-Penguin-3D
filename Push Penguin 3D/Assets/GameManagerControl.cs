@@ -1,137 +1,169 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManagerControl : MonoBehaviour, IScorable, ISpawnable{
-    enum ItemType { Apple,Banana,Cherry}
 
-    private int currentEggs;
+
+public class GameManagerControl : MonoBehaviour
+{
+
+    public enum ItemType { Apple, Banana, Cherry }
+
+
     private List<EggControl> eggs;
     private List<PickUpItemControl> items;
-    private int currentEnemies;
-    private int currentItems;
-    private int players;
+    private List<NPCControl> enemies;
+    private List<PenguinControl> player;
+    private int whatDestroyed;
 
-    public int EggSpawn()
-    {
-        //Spawn Egg
+    public Transform itemClone;
 
-        currentEggs++;
 
-        return currentEggs;
-    }
+    WorldControl theWorld;
 
-    public int EnemySpawn()
+ 
+    //public int EggSpawn()
+
+    //{
+    //    //Spawn Egg
+
+    //    eggs.Add(egg);
+    //}
+
+    public void EnemySpawn(NPCControl enemy)
     {
         //Spawn Enemy
 
-        currentEnemies++;
-
-        return currentEnemies;
+        enemies.Add(enemy);
     }
 
-    public int ItemSpawn()
+
+    private void SpawnRandomItem()
     {
-        //spawn Item
+        ItemType newItemType = (ItemType)UnityEngine.Random.Range(0, 3);
 
-        currentItems++;
+        Vector3 positionToSpawn = theWorld.randomEmptyPosition();
+        positionToSpawn = new Vector3(1, 1, 1);
+        float timeSpawned = Time.time;
 
-        return currentItems;
+        ItemSpawnAt(newItemType, positionToSpawn, timeSpawned);
+
     }
 
-    public int PlayerSpawn()
+    private void ItemSpawnAt(ItemType newItemType, Vector3 positionToSpawn, float timeSpawned)
+    {
+
+        Transform newItem = Instantiate(itemClone, positionToSpawn, Quaternion.identity);
+        PickUpItemControl newItemControl = newItem.GetComponent<PickUpItemControl>();
+        newItemControl.YouAre(newItemType, 100 * (1 + (int)newItemType), 5.0f);
+        items.Add(newItemControl);
+    }
+
+
+    public void PlayerSpawn(PenguinControl player)
+
     {
         //spawn Player
 
-        players++;
+        this.player.Add(player);
 
-        return players;
+
     }
 
 
-  
 
-    public int AddScore(char item, int currentScore)
-    {
-        List<ItemType> myList = new List<ItemType>();
 
-        foreach (ItemType i in myList)
-            if (i== currentlyActiveType) 
-
-        switch(item)
-        {
-            case 'A':
-                {
-                    currentScore += apple.getScore();
-                    break;
-                }
-            case 'B':
-                {
-                    currentScore += banana.getScore();
-                    break;
-                }
-            case 'C':
-                {
-                    currentScore += cherry.getScore();
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        return currentScore;
-    }
 
     public void SetScore(char item)
     {
-        int minScore = 50;
-        int maxScore = 250;
 
-        switch (item)
+
+
+        /*switch (item)
         {
             case 'A':
                 {
-                    //apple.setScore(minScore);
-                    break;
+                    //apple.points(minScore);
+                  
+                      break;
                 }
             case 'B':
                 {
-                    //banana.setScore(minScore*1.25f);
+                    //banana.points(minScore*1.25f);
                     break;
                 }
-            case 'C':
+            case 'S':
                 {
-                    //cherry.setScore(maxScore);
+                    //starberry.points(maxScore);
                     break;
                 }
             default:
                 {
                     break;
                 }
-        }
+        }*/
     }
 
-    public void ItemDestroyed(PickUpItemControl  item)
+    public void ItemDestroyed(PickUpItemControl item)
     {
 
         items.Remove(item);
 
     }
 
-    // Use this for initialization
-    void Start () {
+    public void EnemyDestroyed(PickUpItemControl enemy)
+    {
 
-        eggs = new List<EggControl>();
-        items = new List<PickUpItemControl>();
+        //enemies.Remove(enemy);
+
+        //AddScore(ScoreControl.currentScore);
+        whatDestroyed = 2;
+    }
+
+    public void EggDestroyed(EggControl egg)
+    {
+
+        eggs.Remove(egg);
+
+        //AddScore(ScoreControl.currentScore);
+        whatDestroyed = 1;
 
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
-    
+    public void PlayerDestroyed(PenguinControl penguin)
+    {
+
+        player.Remove(penguin);
+
+    }
+
+
+
+    // Use this for initialization
+    void Start()
+    {
+        theWorld = FindObjectOfType<WorldControl>();
+
+        if (theWorld) print("found the world");
+        else print("No world");
+        eggs = new List<EggControl>();
+        items = new List<PickUpItemControl>();
+        enemies = new List<NPCControl>();
+        player = new List<PenguinControl>();
+
+
+    }
+
+
+    public void startOfWorld()
+    {
+
+    }
+    // Update is called once per frame
+    void Update(){
+        if (Input.GetKeyDown(KeyCode.C)) SpawnRandomItem();
+    }
+
+
 }
